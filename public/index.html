@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HVAC AI Assistant - 24/7 Service Support</title>
+  <meta name="description"
+    content="Get instant HVAC service quotes with our AI-powered assistant. Available 24/7 for all your heating and cooling needs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+  <!-- Animated background particles -->
+  <div class="bg-particles" id="particles"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="logo">🔧 HVAC AI Assistant</h1>
+      <p class="tagline">Your 24/7 HVAC Service Partner - Powered by AI</p>
+      <a href="/contractor.html" target="_blank" class="contractor-portal-btn" title="Open Contractor Portal">
+        🔧 Contractor Portal
+      </a>
+    </header>
+
+    <!-- Call Now Section -->
+    <section class="call-section" id="callSection">
+      <div class="glass-card">
+        <h2 style="margin-bottom: 1rem; font-size: 1.8rem;">Need HVAC Service?</h2>
+        <p style="color: var(--text-gray); margin-bottom: 2rem; font-size: 1.1rem;">
+          Click below to speak with our AI assistant and get an instant quote
+        </p>
+        <button class="call-now-btn" id="callNowBtn">
+          <span class="icon">📞</span>
+          Call Now
+        </button>
+      </div>
+    </section>
+
+    <!-- Chat Interface -->
+    <section class="chat-interface" id="chatInterface">
+      <div class="glass-card chat-container">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">
+          <span style="color: var(--accent-orange);">AI Assistant</span> - Let's Help You
+        </h2>
+
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be added here dynamically -->
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Type your response..." autocomplete="off">
+          <button class="send-btn" id="sendBtn">Send</button>
+          <button class="end-call-btn" id="endCallBtn"
+            style="display: none; background: #ef4444; color: white; padding: 0.8rem 1.2rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-left: 0.5rem;">End
+            Call</button>
+        </div>
+      </div>
+
+      <!-- Result Section -->
+      <div class="result-section" id="resultSection">
+        <div class="glass-card result-content" id="resultContent">
+          <!-- Results will be displayed here -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/js/client.js"></script>
+  <script>
+    // Create animated particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 15; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.width = Math.random() * 100 + 50 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 20 + 's';
+      particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+      particlesContainer.appendChild(particle);
+    }
+  </script>
+</body>
+
+</html>

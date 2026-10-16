@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Portal - HVAC AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .portal-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .cases-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .case-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .case-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .case-id {
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+        }
+
+        .case-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-pictures {
+            background: linear-gradient(135deg, var(--warning), #fbbf24);
+            color: var(--dark-bg);
+        }
+
+        .badge-ready {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            color: var(--dark-bg);
+        }
+
+        .badge-review {
+            background: linear-gradient(135deg, var(--error), #f87171);
+            color: white;
+        }
+
+        .case-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .case-problem {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--error), var(--warning), var(--success));
+            transition: width 0.5s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-gray);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.6rem 1.5rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            border-color: var(--accent-blue);
+        }
+
+        .filter-tab:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .quote-comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quote-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quote-section-label {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quote-original {
+            width: 100%;
+            height: 400px;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-light);
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            resize: none;
+            cursor: not-allowed;
+        }
+
+        .quote-editor {
+            width: 100%;
+            height: 400px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            color: var(--text-light);
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .quote-editor:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .quote-comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.5);
+            color: var(--text-light);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .notification-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--error), #ef4444);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            min-width: 20px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="container">
+        <div class="portal-header">
+            <h1 style="margin-bottom: 0.5rem;">🔧 Contractor Portal</h1>
+            <p style="color: rgba(255,255,255,0.8);">Manage HVAC service requests and pending cases</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCases">0</div>
+                <div class="stat-label">Total Cases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingReview">0</div>
+                <div class="stat-label">Pending Review</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="picturesNeeded">0</div>
+                <div class="stat-label">Pictures Needed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="quotesReady">0</div>
+                <div class="stat-label">Quotes Ready</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div class="filter-tabs">
+                <div class="filter-tab active" data-filter="all">All Cases</div>
+                <div class="filter-tab" data-filter="HUMAN_REVIEW">Human Review</div>
+                <div class="filter-tab" data-filter="PICTURES">Pictures Needed</div>
+                <div class="filter-tab" data-filter="QUOTE_READY">
+                    Quote Ready
+                    <span class="notification-badge" id="quoteBadge" style="display: none;">0</span>
+                </div>
+                <div class="filter-tab" data-filter="QUOTE_APPROVED">Approved</div>
+            </div>
+            <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+        </div>
+
+        <!-- Cases List -->
+        <div class="cases-container" id="casesContainer">
+            <div class="empty-state">
+                <h3>Loading cases...</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Human Review Modal -->
+    <div class="modal" id="humanReviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 Human Review - Case Analysis</h2>
+                <button class="close-btn" onclick="closeHumanReviewModal()">×</button>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <p style="color: var(--text-gray);">Case ID: <span id="humanReviewCaseId" style="color: var(--accent-blue);"></span></p>
+                <p style="color: var(--text-gray); margin-top: 0.5rem;">Client: <span id="humanReviewClientName" style="color: var(--text-light); font-weight: 600;"></span></p>
+            </div>
+
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                <h3 style="margin-top: 0; color: var(--accent-orange);">Case Summary</h3>
+                <div id="humanReviewSummary" style="color: var(--text-light); line-height: 1.6;"></div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: var(--text-light); font-weight: 600; margin-bottom: 0.5rem;">
+                    Your Professional Review & Comments:
+                </label>
+                <textarea 
+                    id="contractorComments" 
+                    placeholder="Add your expert analysis, clarifications, or additional requirements here. This will help the AI generate a more accurate quotation..."
+                    style="width: 100%; min-height: 200px; padding: 1rem; background: rgba(15, 23, 42, 0.5); border: 2px solid var(--accent-blue); border-radius: 8px; color: var(--text-light); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                ></textarea>
+                <p style="color: var(--text-gray); font-size: 0.85rem; margin-top: 0.5rem;">
+                    💡 Your comments will be used to generate a quotation. The client will not see this review process.
+                </p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeHumanReviewModal()">Cancel</button>
+                <button class="btn btn-primary" id="submitHumanReviewBtn">✅ Submit Review & Generate Quote</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Quote Modal -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 Review & Compare Quote</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <p style="color: var(--text-gray);">Case ID: <span id="modalCaseId"
+                        style="color: var(--accent-blue);"></span></p>
+                <p style="color: var(--text-gray); margin-top: 0.5rem;">Client: <span id="modalClientName"
+                        style="color: var(--text-light); font-weight: 600;"></span></p>
+            </div>
+
+            <div class="quote-comparison-container">
+                <div class="quote-section">
+                    <div class="quote-section-label">📄 Original Quote</div>
+                    <textarea class="quote-original" id="originalQuote" readonly></textarea>
+                </div>
+                <div class="quote-section">
+                    <div class="quote-section-label">✏️ Your Editable Version</div>
+                    <textarea class="quote-editor" id="quoteEditor" placeholder="Make your changes here..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="sendOriginalBtn">📤 Send Original Quote to Client</button>
+                <button class="btn btn-success" id="sendEditedBtn">✅ Implement Changes and Send to Client</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/contractor.js"></script>
+    <script>
+        // Create animated particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 15; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = Math.random() * 100 + 50 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+</body>
+
+</html>

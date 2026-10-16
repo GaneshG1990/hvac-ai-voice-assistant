@@ -1,0 +1,7 @@
+node_modules/
+.env
+.DS_Store
+*.log
+server/data/cases.json
+server/data/pending-requests.json
+server/data/uploads/
