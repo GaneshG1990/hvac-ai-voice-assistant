@@ -2,9 +2,6 @@
 
 A voice-first assistant that takes HVAC service requests, qualifies them with an LLM, and decides the next step on its own: send a quote, ask the customer for photos over Telegram, or hand the case to a human contractor.
 
-<!-- Add a screenshot or GIF of a call here, e.g. ![Demo](docs/demo.gif) -->
-**Demo video:** [link]
-
 ## Features
 
 - **Voice conversation in the browser:** customers press "Call Now" and talk. Speech recognition and spoken replies use the browser's Web Speech API, so no separate speech service is needed.
