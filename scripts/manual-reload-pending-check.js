@@ -3,8 +3,8 @@
  * This simulates what happens when the server restarts
  */
 
-const { getPendingRequest, getPendingRequestByCaseId } = require('./server/services/telegram');
-const { loadPendingRequests } = require('./server/services/telegram');
+const { getPendingRequest, getPendingRequestByCaseId } = require('../server/services/telegram');
+const { loadPendingRequests } = require('../server/services/telegram');
 
 async function testReload() {
     console.log('🧪 Testing Pending Requests Reload from Disk\n');
@@ -62,7 +62,7 @@ async function testFileExists() {
     console.log('🧪 Testing Pending Requests File\n');
     
     try {
-        const filePath = path.join(__dirname, 'server/data/pending-requests.json');
+        const filePath = path.join(__dirname, '../server/data/pending-requests.json');
         const data = await fs.readFile(filePath, 'utf8');
         const parsed = JSON.parse(data);
         

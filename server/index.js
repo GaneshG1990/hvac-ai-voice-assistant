@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const casesRouter = require('./routes/cases');
 const llmRouter = require('./routes/llm');
+const authRouter = require('./routes/auth');
+const { requireContractorPage, isAuthConfigured } = require('./middleware/auth');
 const { initializeTelegramBot, requestPictures, sendConfirmationMessage, bot } = require('./services/telegram');
 const openRouterService = require('./services/openrouter');
 const { startScheduler, stopScheduler } = require('./services/autoQuotationScheduler');
@@ -13,14 +15,28 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// CORS configuration - allow all origins for development, can be restricted in production
+// CORS: the bundled frontends are same-origin, so cross-origin access is off
+// unless ALLOWED_ORIGINS lists specific origins (comma-separated).
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
 app.use(cors({
-    origin: true, // Allow all origins (can be restricted to specific domain in production)
+    origin: allowedOrigins.length ? allowedOrigins : false,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// The contractor portal page requires a signed-in contractor.
+app.get(['/contractor', '/contractor.html'], requireContractorPage, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/contractor.html'));
+});
+app.get(['/login', '/login.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Request Logger
@@ -30,6 +46,7 @@ app.use((req, res, next) => {
 });
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/cases', casesRouter);
 app.use('/api/llm', llmRouter);
 
@@ -610,16 +627,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-app.get('/contractor', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/contractor.html'));
-});
-
 // Start server
 const server = app.listen(PORT, () => {
     console.log(`🚀 HVAC AI Assistant server running on http://localhost:${PORT}`);
     console.log(`📱 Telegram bot is active and listening for messages`);
     console.log(`👤 Client interface: http://localhost:${PORT}`);
     console.log(`🔧 Contractor portal: http://localhost:${PORT}/contractor`);
+    if (!isAuthConfigured()) {
+        console.warn('⚠️  CONTRACTOR_USERNAME / CONTRACTOR_PASSWORD not set: contractor login is disabled.');
+    }
     
     // Start auto-quotation scheduler
     startScheduler();

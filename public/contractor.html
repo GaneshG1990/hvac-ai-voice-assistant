@@ -16,6 +16,25 @@
             border-radius: 16px;
             margin-bottom: 2rem;
             text-align: center;
+            position: relative;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: transparent;
+            color: #fff;
+            font: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .stats-grid {
@@ -372,6 +391,7 @@
         <div class="portal-header">
             <h1 style="margin-bottom: 0.5rem;">🔧 Contractor Portal</h1>
             <p style="color: rgba(255,255,255,0.8);">Manage HVAC service requests and pending cases</p>
+            <button type="button" id="logoutBtn" class="logout-btn">Sign out</button>
         </div>
 
         <!-- Stats -->

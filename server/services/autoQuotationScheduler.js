@@ -13,6 +13,10 @@ const TIMEOUT_MINUTES = 15; // Generate quote after 15 minutes
 
 let schedulerInterval = null;
 
+function casesFilePath() {
+    return process.env.CASES_FILE || path.join(__dirname, '../data/cases.json');
+}
+
 /**
  * Check and process cases that have been waiting for pictures too long
  */
@@ -20,7 +24,7 @@ async function checkAndProcessCases() {
     console.log('[Auto-Quotation Scheduler] Running check...');
     
     try {
-        const casesPath = path.join(__dirname, '../data/cases.json');
+        const casesPath = casesFilePath();
         const casesData = await fs.readFile(casesPath, 'utf8');
         const cases = JSON.parse(casesData);
         
@@ -111,7 +115,7 @@ async function generateQuotationForCase(caseData, caseIndex, cases) {
     cases[caseIndex].updatedAt = new Date().toISOString();
     
     // Write updated cases
-    const casesPath = path.join(__dirname, '../data/cases.json');
+    const casesPath = casesFilePath();
     await fs.writeFile(casesPath, JSON.stringify(cases, null, 2));
     
     console.log(`[Auto-Quotation Scheduler] ✅ Quotation saved for case ${caseData.id}`);

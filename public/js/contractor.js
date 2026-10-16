@@ -1,6 +1,24 @@
 // Contractor Portal Logic
 
 const API_BASE = window.location.origin;
+
+// Send the contractor back to the login page if the session expires.
+const nativeFetch = window.fetch.bind(window);
+window.fetch = async (...args) => {
+    const response = await nativeFetch(...args);
+    if (response.status === 401) {
+        window.location.replace('/login');
+    }
+    return response;
+};
+
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        await nativeFetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+        window.location.replace('/login');
+    });
+}
 let allCases = [];
 let currentFilter = 'all';
 let activeCaseId = null;

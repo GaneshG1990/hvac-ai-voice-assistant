@@ -2,13 +2,27 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
+const { requireContractor, getSession } = require('../middleware/auth');
 
-const casesFilePath = path.join(__dirname, '../data/cases.json');
+// CASES_FILE lets tests (or deployments) point storage somewhere else.
+function casesFilePath() {
+    return process.env.CASES_FILE || path.join(__dirname, '../data/cases.json');
+}
+
+// Fields only the server or a signed-in contractor may set.
+const PROTECTED_FIELDS = ['id', 'createdAt', 'original_quote', 'final_quote', 'telegramChatId'];
+const CONTRACTOR_ONLY_STATUSES = ['QUOTE_APPROVED', 'CHANGES_REQUESTED'];
+
+function stripProtectedFields(body) {
+    const clean = { ...(body || {}) };
+    for (const field of PROTECTED_FIELDS) delete clean[field];
+    return clean;
+}
 
 // Helper function to read cases
 async function readCases() {
     try {
-        const data = await fs.readFile(casesFilePath, 'utf8');
+        const data = await fs.readFile(casesFilePath(), 'utf8');
         return JSON.parse(data);
     } catch (error) {
         return [];
@@ -17,13 +31,13 @@ async function readCases() {
 
 // Helper function to write cases
 async function writeCases(cases) {
-    await fs.writeFile(casesFilePath, JSON.stringify(cases, null, 2));
+    await fs.writeFile(casesFilePath(), JSON.stringify(cases, null, 2));
 }
 
 /**
- * GET /api/cases - List all cases
+ * GET /api/cases - List all cases (contractor only)
  */
-router.get('/', async (req, res) => {
+router.get('/', requireContractor, async (req, res) => {
     try {
         const cases = await readCases();
         res.json(cases);
@@ -33,9 +47,9 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * GET /api/cases/:id - Get specific case
+ * GET /api/cases/:id - Get specific case (contractor only)
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireContractor, async (req, res) => {
     try {
         const cases = await readCases();
         const caseData = cases.find(c => c.id === req.params.id);
@@ -57,12 +71,13 @@ router.post('/', async (req, res) => {
     try {
         const cases = await readCases();
 
+        const body = stripProtectedFields(req.body);
         const newCase = {
-            id: `CASE-${Date.now()}`,
-            transcript: req.body.transcript,
-            createdAt: new Date().toISOString(),
+            transcript: body.transcript,
             status: 'pending_analysis',
-            ...req.body
+            ...body,
+            id: `CASE-${Date.now()}`,
+            createdAt: new Date().toISOString()
         };
 
         cases.push(newCase);
@@ -86,14 +101,22 @@ router.patch('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Case not found' });
         }
 
+        const isContractor = Boolean(getSession(req));
+        const updates = isContractor ? { ...req.body } : stripProtectedFields(req.body);
+        delete updates.id;
+
+        if (!isContractor && CONTRACTOR_ONLY_STATUSES.includes(updates.status)) {
+            return res.status(403).json({ error: 'Only a contractor can set this status' });
+        }
+
         cases[index] = {
             ...cases[index],
-            ...req.body,
+            ...updates,
             updatedAt: new Date().toISOString()
         };
 
         // Track timestamp when pictures are requested
-        if (req.body.analysis?.action_required === 'PICTURES') {
+        if (updates.analysis?.action_required === 'PICTURES') {
             if (!cases[index].analysis.pictures_requested_at) {
                 cases[index].analysis.pictures_requested_at = new Date().toISOString();
                 console.log(`[Cases] Pictures requested timestamp set for case ${cases[index].id}`);
@@ -120,6 +143,13 @@ router.patch('/:id/quote', async (req, res) => {
         }
 
         const { quote, status, use_original } = req.body;
+
+        // The customer app may save the first generated quote. Approving,
+        // requesting changes or overwriting an existing quote needs a contractor.
+        const isContractor = Boolean(getSession(req));
+        if (!isContractor && (status || cases[index].original_quote)) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
 
         // Initialize analysis if missing
         if (!cases[index].analysis) {
@@ -219,9 +249,9 @@ router.patch('/:id/quote', async (req, res) => {
 });
 
 /**
- * POST /api/cases/:id/images - Add images to case
+ * POST /api/cases/:id/images - Add images to case (contractor only)
  */
-router.post('/:id/images', async (req, res) => {
+router.post('/:id/images', requireContractor, async (req, res) => {
     try {
         const cases = await readCases();
         const index = cases.findIndex(c => c.id === req.params.id);
@@ -252,7 +282,7 @@ router.post('/:id/images', async (req, res) => {
 /**
  * POST /api/cases/:id/human-review - Submit contractor review and generate quotation
  */
-router.post('/:id/human-review', async (req, res) => {
+router.post('/:id/human-review', requireContractor, async (req, res) => {
     try {
         const cases = await readCases();
         const index = cases.findIndex(c => c.id === req.params.id);
@@ -338,9 +368,9 @@ router.post('/:id/human-review', async (req, res) => {
 });
 
 /**
- * DELETE /api/cases/:id - Delete case
+ * DELETE /api/cases/:id - Delete case (contractor only)
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireContractor, async (req, res) => {
     try {
         const cases = await readCases();
         const index = cases.findIndex(c => c.id === req.params.id);

@@ -1,9 +1,9 @@
 /**
  * Test script to verify Telegram message sending with existing case
- * Run with: node test-telegram.js
+ * Run with: node scripts/manual-telegram-check.js
  */
 
-const { requestPictures } = require('./server/services/telegram');
+const { requestPictures } = require('../server/services/telegram');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -12,7 +12,7 @@ async function testTelegramMessage() {
     
     try {
         // Read existing cases
-        const casesPath = path.join(__dirname, 'server/data/cases.json');
+        const casesPath = path.join(__dirname, '../server/data/cases.json');
         const casesData = await fs.readFile(casesPath, 'utf8');
         const cases = JSON.parse(casesData);
         
